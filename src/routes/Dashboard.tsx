@@ -1,11 +1,27 @@
+import { useState } from 'react'
 import { Navigate, useNavigate } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
+import { api, type ApiError } from '../lib/api'
+import CNPJForm from '../components/CNPJForm'
+import CNPJResult, { type CNPJData } from '../components/CNPJResult'
+
+interface CNPJResponse {
+  cnpj: string
+  status: string // 'ok' | 'not_found' | 'enfileirado'
+  data?: CNPJData
+  consultado_em?: string
+  mensagem?: string
+}
 
 function Dashboard() {
-  const { user, logout } = useAuth()
+  const { user, token, logout } = useAuth()
   const navigate = useNavigate()
 
-  // Se não está logado, manda pra login.
+  const [result, setResult] = useState<CNPJResponse | null>(null)
+  const [loading, setLoading] = useState(false)
+  const [queued, setQueued] = useState<string | null>(null)
+  const [error, setError] = useState<string | null>(null)
+
   if (!user) {
     return <Navigate to="/" replace />
   }
@@ -13,6 +29,36 @@ function Dashboard() {
   const handleLogout = () => {
     logout()
     navigate('/')
+  }
+
+  const handleConsult = async (cnpj: string) => {
+    setLoading(true)
+    setError(null)
+    setResult(null)
+    setQueued(null)
+
+    try {
+      const data = await api<CNPJResponse>(`/cnpj/${cnpj}`, {
+        method: 'POST',
+        token,
+      })
+
+      if (data.status === 'enfileirado') {
+        setQueued(data.mensagem || 'Consulta enfileirada. Tente novamente em alguns segundos.')
+      } else {
+        setResult(data)
+      }
+    } catch (e) {
+      const apiErr = e as ApiError
+      if (apiErr.status === 401) {
+        logout()
+        navigate('/')
+        return
+      }
+      setError(apiErr.message || 'Erro de rede')
+    } finally {
+      setLoading(false)
+    }
   }
 
   return (
@@ -33,12 +79,35 @@ function Dashboard() {
         </div>
       </header>
 
-      <main className="max-w-5xl mx-auto px-6 py-12">
-        <h2 className="text-2xl font-bold mb-2">Dashboard</h2>
-        <p className="text-sm text-slate-400 mb-8">Logado como {user.email}</p>
-        <p className="text-slate-400">
-          Em breve: formulário de consulta de CNPJ + histórico + eventos em tempo real.
-        </p>
+      <main className="max-w-3xl mx-auto px-6 py-12">
+        <div className="mb-8">
+          <h2 className="text-2xl font-bold mb-2">Consultar CNPJ</h2>
+          <p className="text-sm text-slate-400">
+            Digite o CNPJ (com ou sem formatação) para consultar dados cadastrais.
+          </p>
+        </div>
+
+        <div className="mb-8">
+          <CNPJForm loading={loading} onSubmit={handleConsult} />
+        </div>
+
+        {queued && (
+          <div className="rounded-md bg-blue-950 border border-blue-900 p-4 mb-6 text-sm text-blue-200">
+            <p className="font-medium mb-1">⏳ Consulta em processamento</p>
+            <p>{queued}</p>
+            <p className="text-xs text-blue-300 mt-2">
+              Clique em &quot;Consultar&quot; novamente em alguns segundos.
+            </p>
+          </div>
+        )}
+
+        {error && (
+          <div className="rounded-md bg-red-950 border border-red-900 p-4 mb-6 text-sm text-red-200">
+            {error}
+          </div>
+        )}
+
+        {result?.data && <CNPJResult data={result.data} consultadoEm={result.consultado_em} />}
       </main>
     </div>
   )
