@@ -191,9 +191,7 @@ export function CNPJPDF({ data, consultadoEm }: Props) {
             {data.situacao && (
               <Text
                 style={
-                  data.situacao === 'ATIVA'
-                    ? styles.badge
-                    : [styles.badge, styles.badgeInactive]
+                  data.situacao === 'ATIVA' ? styles.badge : [styles.badge, styles.badgeInactive]
                 }
               >
                 {data.situacao}

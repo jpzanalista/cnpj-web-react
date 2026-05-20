@@ -2,9 +2,11 @@ import { useEffect, useState } from 'react'
 import { Navigate, useNavigate } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
 import { useWebSocket } from '../hooks/useWebSocket'
+import { useHistory } from '../hooks/useHistory'
 import { api, type ApiError } from '../lib/api'
 import CNPJForm from '../components/CNPJForm'
 import CNPJResult, { type CNPJData } from '../components/CNPJResult'
+import HistoryList from '../components/HistoryList'
 
 interface CNPJResponse {
   cnpj: string
@@ -18,6 +20,7 @@ function Dashboard() {
   const { user, token, logout } = useAuth()
   const navigate = useNavigate()
   const { connected, lastEvent } = useWebSocket(token)
+  const history = useHistory()
 
   const [result, setResult] = useState<CNPJResponse | null>(null)
   const [loading, setLoading] = useState(false)
@@ -26,7 +29,7 @@ function Dashboard() {
   const [pendingCNPJ, setPendingCNPJ] = useState<string | null>(null)
 
   // Quando recebemos evento WS, se for do CNPJ que estamos esperando,
-  // busca os dados via GET e mostra o card.
+  // busca os dados via GET e mostra o card + adiciona ao historico.
   useEffect(() => {
     if (!lastEvent || !pendingCNPJ) return
     if (lastEvent.cnpj !== pendingCNPJ) return
@@ -37,11 +40,15 @@ function Dashboard() {
         setResult(data)
         setQueued(null)
         setPendingCNPJ(null)
+        if (data.data?.nome) {
+          history.add(data.cnpj, data.data.nome)
+        }
       } catch (e) {
         console.error('erro ao buscar dados apos evento WS:', e)
       }
     }
     fetchData()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [lastEvent, pendingCNPJ, token])
 
   if (!user) {
@@ -71,6 +78,9 @@ function Dashboard() {
         setPendingCNPJ(cnpj)
       } else {
         setResult(data)
+        if (data.data?.nome) {
+          history.add(data.cnpj, data.data.nome)
+        }
       }
     } catch (e) {
       const apiErr = e as ApiError
@@ -117,9 +127,11 @@ function Dashboard() {
           </p>
         </div>
 
-        <div className="mb-8">
+        <div className="mb-6">
           <CNPJForm loading={loading} onSubmit={handleConsult} />
         </div>
+
+        <HistoryList items={history.items} onSelect={handleConsult} onClear={history.clear} />
 
         {queued && (
           <div className="rounded-md bg-blue-950 border border-blue-900 p-4 mb-6 text-sm text-blue-200">
