@@ -2,8 +2,13 @@ import { useState } from 'react'
 import { useNavigate, Navigate } from 'react-router-dom'
 import { GoogleLogin, type CredentialResponse } from '@react-oauth/google'
 import { useAuth } from '../contexts/AuthContext'
+import type { User } from '../contexts/AuthContext'
+import { api, type ApiError } from '../lib/api'
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8080'
+interface AuthGoogleResponse {
+  token: string
+  user: User
+}
 
 function Login() {
   const { isAuthenticated, login } = useAuth()
@@ -11,7 +16,6 @@ function Login() {
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
 
-  // Se já está logado, redireciona pro dashboard.
   if (isAuthenticated) {
     return <Navigate to="/dashboard" replace />
   }
@@ -26,23 +30,15 @@ function Login() {
     setError(null)
 
     try {
-      const res = await fetch(`${API_URL}/auth/google`, {
+      const data = await api<AuthGoogleResponse>('/auth/google', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ credential: response.credential }),
+        body: { credential: response.credential },
       })
-
-      if (!res.ok) {
-        const body = await res.json().catch(() => ({}))
-        setError(body.erro || `Erro do backend: HTTP ${res.status}`)
-        return
-      }
-
-      const data = await res.json()
       login(data.user, data.token)
       navigate('/dashboard')
     } catch (e) {
-      setError(e instanceof Error ? e.message : 'Erro de rede')
+      const apiErr = e as ApiError
+      setError(apiErr.message || 'Erro de rede')
     } finally {
       setLoading(false)
     }
@@ -66,9 +62,7 @@ function Login() {
           />
         </div>
 
-        {loading && (
-          <div className="mt-4 text-center text-xs text-slate-400">Autenticando...</div>
-        )}
+        {loading && <div className="mt-4 text-center text-xs text-slate-400">Autenticando...</div>}
 
         {error && (
           <div className="mt-4 rounded-md bg-red-950 border border-red-900 p-3 text-xs text-red-300">
