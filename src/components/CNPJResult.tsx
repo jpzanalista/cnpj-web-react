@@ -1,3 +1,6 @@
+import { PDFDownloadLink } from '@react-pdf/renderer'
+import { CNPJPDF } from './CNPJPDF'
+
 export interface CNPJData {
   cnpj?: string
   nome?: string
@@ -65,24 +68,35 @@ function CNPJResult({ data, consultadoEm }: Props) {
       {/* Header */}
       <div className="rounded-lg bg-slate-950 border border-slate-800 p-6">
         <div className="flex items-start justify-between gap-4 flex-wrap">
-          <div className="min-w-0">
+          <div className="min-w-0 flex-1">
             <h3 className="text-xl font-bold text-slate-100">{data.nome || 'Sem nome'}</h3>
             {data.fantasia && (
               <p className="text-sm text-slate-400 mt-1">Nome fantasia: {data.fantasia}</p>
             )}
             <p className="text-xs text-slate-500 mt-2 font-mono">CNPJ: {data.cnpj}</p>
           </div>
-          {data.situacao && (
-            <span
-              className={`px-3 py-1 rounded-full text-xs font-medium border ${
-                data.situacao === 'ATIVA'
-                  ? 'bg-emerald-950 text-emerald-300 border-emerald-800'
-                  : 'bg-amber-950 text-amber-300 border-amber-800'
-              }`}
+
+          <div className="flex items-center gap-3">
+            {data.situacao && (
+              <span
+                className={`px-3 py-1 rounded-full text-xs font-medium border ${
+                  data.situacao === 'ATIVA'
+                    ? 'bg-emerald-950 text-emerald-300 border-emerald-800'
+                    : 'bg-amber-950 text-amber-300 border-amber-800'
+                }`}
+              >
+                {data.situacao}
+              </span>
+            )}
+
+            <PDFDownloadLink
+              document={<CNPJPDF data={data} consultadoEm={consultadoEm} />}
+              fileName={`cnpj_${data.cnpj?.replace(/\D/g, '') || 'consulta'}.pdf`}
+              className="px-3 py-1 rounded-md text-xs font-medium bg-slate-800 text-slate-200 border border-slate-700 hover:bg-slate-700 transition-colors"
             >
-              {data.situacao}
-            </span>
-          )}
+              {({ loading }) => (loading ? 'Gerando PDF...' : '📥 Baixar PDF')}
+            </PDFDownloadLink>
+          </div>
         </div>
       </div>
 
