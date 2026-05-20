@@ -17,7 +17,7 @@ function CNPJForm({ loading, onSubmit }: Props) {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="flex gap-2 items-center">
+    <form onSubmit={handleSubmit} className="flex flex-col sm:flex-row gap-2 sm:items-center">
       <input
         type="text"
         value={input}
@@ -29,7 +29,7 @@ function CNPJForm({ loading, onSubmit }: Props) {
       <button
         type="submit"
         disabled={!isValid || loading}
-        className="rounded-md bg-emerald-600 hover:bg-emerald-500 disabled:bg-slate-700 disabled:cursor-not-allowed text-white font-medium px-6 py-3 transition-colors"
+        className="w-full sm:w-auto rounded-md bg-emerald-600 hover:bg-emerald-500 disabled:bg-slate-700 disabled:cursor-not-allowed text-white font-medium px-6 py-3 transition-colors"
       >
         {loading ? 'Consultando...' : 'Consultar'}
       </button>

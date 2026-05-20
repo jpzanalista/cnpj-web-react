@@ -97,7 +97,7 @@ function Dashboard() {
 
   return (
     <div className="min-h-screen bg-slate-900 text-slate-100">
-      <header className="border-b border-slate-800 px-6 py-4">
+      <header className="border-b border-slate-800 px-4 sm:px-6 py-4">
         <div className="max-w-5xl mx-auto flex items-center justify-between">
           <div className="flex items-center gap-3">
             <h1 className="text-xl font-bold text-emerald-400">CNPJ.dev</h1>
@@ -107,7 +107,7 @@ function Dashboard() {
             />
           </div>
           <div className="flex items-center gap-4">
-            <span className="text-sm text-slate-300">{user.name}</span>
+            <span className="hidden sm:inline text-sm text-slate-300">{user.name}</span>
             <button
               type="button"
               onClick={handleLogout}
@@ -119,9 +119,9 @@ function Dashboard() {
         </div>
       </header>
 
-      <main className="max-w-3xl mx-auto px-6 py-12">
+      <main className="max-w-3xl mx-auto px-4 sm:px-6 py-8 sm:py-12">
         <div className="mb-8">
-          <h2 className="text-2xl font-bold mb-2">Consultar CNPJ</h2>
+          <h2 className="text-xl sm:text-2xl font-bold mb-2">Consultar CNPJ</h2>
           <p className="text-sm text-slate-400">
             Digite o CNPJ (com ou sem formatação) para consultar dados cadastrais.
           </p>

@@ -66,8 +66,8 @@ function CNPJResult({ data, consultadoEm }: Props) {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="rounded-lg bg-slate-950 border border-slate-800 p-6">
-        <div className="flex items-start justify-between gap-4 flex-wrap">
+      <div className="rounded-lg bg-slate-950 border border-slate-800 p-4 sm:p-6">
+        <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
           <div className="min-w-0 flex-1">
             <h3 className="text-xl font-bold text-slate-100">{data.nome || 'Sem nome'}</h3>
             {data.fantasia && (
@@ -76,7 +76,7 @@ function CNPJResult({ data, consultadoEm }: Props) {
             <p className="text-xs text-slate-500 mt-2 font-mono">CNPJ: {data.cnpj}</p>
           </div>
 
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-3 flex-wrap">
             {data.situacao && (
               <span
                 className={`px-3 py-1 rounded-full text-xs font-medium border ${
@@ -101,7 +101,7 @@ function CNPJResult({ data, consultadoEm }: Props) {
       </div>
 
       {/* Dados gerais */}
-      <div className="rounded-lg bg-slate-950 border border-slate-800 p-6 space-y-3">
+      <div className="rounded-lg bg-slate-950 border border-slate-800 p-4 sm:p-6 space-y-3">
         <h4 className="text-sm font-semibold text-slate-300 uppercase tracking-wider mb-3">
           Dados gerais
         </h4>
@@ -117,7 +117,7 @@ function CNPJResult({ data, consultadoEm }: Props) {
 
       {/* Endereço */}
       {endereco && (
-        <div className="rounded-lg bg-slate-950 border border-slate-800 p-6">
+        <div className="rounded-lg bg-slate-950 border border-slate-800 p-4 sm:p-6">
           <h4 className="text-sm font-semibold text-slate-300 uppercase tracking-wider mb-3">
             Endereço
           </h4>
@@ -127,7 +127,7 @@ function CNPJResult({ data, consultadoEm }: Props) {
 
       {/* Contato */}
       {(data.email || data.telefone) && (
-        <div className="rounded-lg bg-slate-950 border border-slate-800 p-6 space-y-3">
+        <div className="rounded-lg bg-slate-950 border border-slate-800 p-4 sm:p-6 space-y-3">
           <h4 className="text-sm font-semibold text-slate-300 uppercase tracking-wider mb-3">
             Contato
           </h4>
@@ -138,7 +138,7 @@ function CNPJResult({ data, consultadoEm }: Props) {
 
       {/* Atividade principal */}
       {data.atividade_principal && data.atividade_principal.length > 0 && (
-        <div className="rounded-lg bg-slate-950 border border-slate-800 p-6">
+        <div className="rounded-lg bg-slate-950 border border-slate-800 p-4 sm:p-6">
           <h4 className="text-sm font-semibold text-slate-300 uppercase tracking-wider mb-3">
             Atividade principal
           </h4>
@@ -153,7 +153,7 @@ function CNPJResult({ data, consultadoEm }: Props) {
 
       {/* Sócios (QSA) */}
       {data.qsa && data.qsa.length > 0 && (
-        <div className="rounded-lg bg-slate-950 border border-slate-800 p-6">
+        <div className="rounded-lg bg-slate-950 border border-slate-800 p-4 sm:p-6">
           <h4 className="text-sm font-semibold text-slate-300 uppercase tracking-wider mb-3">
             Quadro de sócios ({data.qsa.length})
           </h4>
@@ -170,7 +170,7 @@ function CNPJResult({ data, consultadoEm }: Props) {
 
       {/* Atividades secundárias */}
       {data.atividades_secundarias && data.atividades_secundarias.length > 0 && (
-        <div className="rounded-lg bg-slate-950 border border-slate-800 p-6">
+        <div className="rounded-lg bg-slate-950 border border-slate-800 p-4 sm:p-6">
           <h4 className="text-sm font-semibold text-slate-300 uppercase tracking-wider mb-3">
             Atividades secundárias ({data.atividades_secundarias.length})
           </h4>
