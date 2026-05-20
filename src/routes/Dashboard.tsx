@@ -1,6 +1,7 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Navigate, useNavigate } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
+import { useWebSocket } from '../hooks/useWebSocket'
 import { api, type ApiError } from '../lib/api'
 import CNPJForm from '../components/CNPJForm'
 import CNPJResult, { type CNPJData } from '../components/CNPJResult'
@@ -16,11 +17,32 @@ interface CNPJResponse {
 function Dashboard() {
   const { user, token, logout } = useAuth()
   const navigate = useNavigate()
+  const { connected, lastEvent } = useWebSocket(token)
 
   const [result, setResult] = useState<CNPJResponse | null>(null)
   const [loading, setLoading] = useState(false)
   const [queued, setQueued] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
+  const [pendingCNPJ, setPendingCNPJ] = useState<string | null>(null)
+
+  // Quando recebemos evento WS, se for do CNPJ que estamos esperando,
+  // busca os dados via GET e mostra o card.
+  useEffect(() => {
+    if (!lastEvent || !pendingCNPJ) return
+    if (lastEvent.cnpj !== pendingCNPJ) return
+
+    const fetchData = async () => {
+      try {
+        const data = await api<CNPJResponse>(`/cnpj/${pendingCNPJ}`, { token })
+        setResult(data)
+        setQueued(null)
+        setPendingCNPJ(null)
+      } catch (e) {
+        console.error('erro ao buscar dados apos evento WS:', e)
+      }
+    }
+    fetchData()
+  }, [lastEvent, pendingCNPJ, token])
 
   if (!user) {
     return <Navigate to="/" replace />
@@ -36,6 +58,7 @@ function Dashboard() {
     setError(null)
     setResult(null)
     setQueued(null)
+    setPendingCNPJ(null)
 
     try {
       const data = await api<CNPJResponse>(`/cnpj/${cnpj}`, {
@@ -44,7 +67,8 @@ function Dashboard() {
       })
 
       if (data.status === 'enfileirado') {
-        setQueued(data.mensagem || 'Consulta enfileirada. Tente novamente em alguns segundos.')
+        setQueued(data.mensagem || 'Aguardando worker processar...')
+        setPendingCNPJ(cnpj)
       } else {
         setResult(data)
       }
@@ -65,7 +89,13 @@ function Dashboard() {
     <div className="min-h-screen bg-slate-900 text-slate-100">
       <header className="border-b border-slate-800 px-6 py-4">
         <div className="max-w-5xl mx-auto flex items-center justify-between">
-          <h1 className="text-xl font-bold text-emerald-400">CNPJ.dev</h1>
+          <div className="flex items-center gap-3">
+            <h1 className="text-xl font-bold text-emerald-400">CNPJ.dev</h1>
+            <span
+              title={connected ? 'WebSocket conectado' : 'WebSocket desconectado'}
+              className={`w-2 h-2 rounded-full ${connected ? 'bg-emerald-400' : 'bg-slate-600'}`}
+            />
+          </div>
           <div className="flex items-center gap-4">
             <span className="text-sm text-slate-300">{user.name}</span>
             <button
@@ -93,10 +123,12 @@ function Dashboard() {
 
         {queued && (
           <div className="rounded-md bg-blue-950 border border-blue-900 p-4 mb-6 text-sm text-blue-200">
-            <p className="font-medium mb-1">⏳ Consulta em processamento</p>
-            <p>{queued}</p>
-            <p className="text-xs text-blue-300 mt-2">
-              Clique em &quot;Consultar&quot; novamente em alguns segundos.
+            <div className="flex items-center gap-2 mb-1">
+              <span className="inline-block w-2 h-2 rounded-full bg-blue-400 animate-pulse" />
+              <p className="font-medium">Aguardando worker processar...</p>
+            </div>
+            <p className="text-xs text-blue-300">
+              {queued} O resultado aparecerá automaticamente quando estiver pronto.
             </p>
           </div>
         )}
